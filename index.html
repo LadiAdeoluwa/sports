@@ -654,7 +654,33 @@ function stopPreview() {
   document.getElementById('previewDock').style.display = 'none';
 }
 document.getElementById('stopPreview').addEventListener('click', stopPreview);
+/* ---------------- Auto-load playlist & EPG (optional) ---------------- */
+window.addEventListener("DOMContentLoaded", async () => {
+  // 👇 Update these filenames to match your repo
+  const defaultPlaylist = "./apollo.m3u";  // or .m3u
+  const defaultEpg = "./epg.xml";             // optional
+  
+  try {
+    const res = await fetch(defaultPlaylist);
+    if (!res.ok) throw new Error(res.statusText);
+    const text = await res.text();
+    loadPlaylist(text);
+    toast("Default playlist loaded");
 
+    // Auto-load EPG if available
+    try {
+      const epgRes = await fetch(defaultEpg);
+      if (epgRes.ok) {
+        const epgText = await epgRes.text();
+        parseEpgXml(epgText);
+        if (epg.ready) toast("EPG loaded");
+      }
+    } catch {}
+  } catch (err) {
+    console.error("Auto-load failed:", err);
+    setStatus("JS: OK • No default playlist found");
+  }
+});
 /* Initial status check */
 try { setStatus('JS: OK'); } catch(e) {}
 </script>
